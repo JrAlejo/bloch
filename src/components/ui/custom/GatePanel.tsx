@@ -37,23 +37,21 @@ export default function GatePanel({ qubitIndex = 0 }: GatePanelProps) {
     setQubitState(qubitIndex, theta * Math.PI / 180, val * Math.PI / 180);
   }, [theta, qubitIndex, setQubitState]);
 
-  const handleGate = useCallback(async (gateName: GateName) => {
-    // 1. Send command to ESP32 physical motors via Tunnel
-    try {
-      await fetch(`${ESP32_URL}/api/gate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gate: gateName })
-      });
-    } catch (err) {
-      console.error('Error sending gate to ESP32:', err);
-    }
-
-    // 2. Update Web UI state
+  const handleGate = useCallback((gateName: GateName) => {
+    // 1. Update Web UI state immediately (esfera digital)
     applyGateToQubit(qubitIndex, { name: gateName });
     const newCoords = useQuantumStore.getState().blochCoords[qubitIndex];
     setTheta(Math.round(newCoords.theta * 180 / Math.PI));
     setPhi(Math.round(newCoords.phi * 180 / Math.PI));
+
+    // 2. Send command to ESP32 physical motors via Tunnel in the background
+    fetch(`${ESP32_URL}/api/gate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gate: gateName })
+    }).catch(err => {
+      console.error('Error sending gate to ESP32:', err);
+    });
   }, [applyGateToQubit, qubitIndex]);
 
   return (
