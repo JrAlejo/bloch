@@ -1,0 +1,662 @@
+import { motion } from 'framer-motion';
+import { Atom, BookOpen, ArrowRight } from 'lucide-react';
+import FormulaBlock from '@/components/math/FormulaBlock';
+import MatrixDisplay from '@/components/math/MatrixDisplay';
+import { ManimSequence } from '@/components/math/ManimStep';
+import { useState } from 'react';
+
+const gateMatrices = {
+  I: { label: 'Identidad', matrix: [['1', '0'], ['0', '1']], desc: 'No modifica el estado' },
+  X: { label: 'Pauli-X (NOT)', matrix: [['0', '1'], ['1', '0']], desc: 'Intercambia |0 y |1' },
+  Y: { label: 'Pauli-Y', matrix: [['0', '-i'], ['i', '0']], desc: 'Rotacion de pi alrededor del eje Y' },
+  Z: { label: 'Pauli-Z', matrix: [['1', '0'], ['0', '-1']], desc: 'Introduce fase relativa de -1 a |1' },
+  H: { label: 'Hadamard', matrix: [['1/sqrt(2)', '1/sqrt(2)'], ['1/sqrt(2)', '-1/sqrt(2)']], desc: 'Crea superposicion equitativa' },
+  S: { label: 'Phase (S)', matrix: [['1', '0'], ['0', 'i']], desc: 'Fase de pi/2 a |1' },
+  T: { label: 'T (pi/8)', matrix: [['1', '0'], ['0', 'e^(i*pi/4)']], desc: 'Fase de pi/4 a |1' },
+};
+
+export default function Tutorial() {
+  const [activeGate, setActiveGate] = useState<keyof typeof gateMatrices>('H');
+  const [activeProtocol, setActiveProtocol] = useState(0);
+
+  return (
+    <div className="min-h-screen bg-black">
+      {/* Hero */}
+      <section className="relative px-4 pt-24 pb-16 max-w-5xl mx-auto">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-blue/8 rounded-full blur-[100px]" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <BookOpen className="w-5 h-5 text-blue" />
+            <span className="label-tracked">Tutorial Completo</span>
+          </div>
+          <h1 className="font-serif text-5xl md:text-6xl text-white mb-5 leading-tight">
+            Fundamentos de la<br />
+            <span className="italic text-blue">Mecanica Cuantica</span>
+          </h1>
+          <p className="text-base text-white/40 max-w-2xl leading-relaxed">
+            Una introduccion visual y rigurosa a los estados cuanticos, la Esfera de Bloch,
+            las compuertas unitarias y los protocolos fundamentales. Con matrices, formulas
+            y animaciones estilo Manim.
+          </p>
+        </motion.div>
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 1: EL QUBIT ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <Atom className="w-5 h-5 text-blue" />
+            <span className="label-tracked">Seccion 1</span>
+          </div>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-8">
+            El Qubit: Bit <span className="italic text-blue">Cuantico</span>
+          </h2>
+        </motion.div>
+
+        <div className="space-y-8">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-sm text-white/50 leading-relaxed max-w-3xl"
+          >
+            Mientras un bit clasico solo puede estar en 0 o 1, un qubit puede existir en una
+            superposicion de ambos estados. Esto se describe matematicamente como un vector
+            en un espacio de Hilbert de dos dimensiones.
+          </motion.p>
+
+          <FormulaBlock label="Estado General del Qubit" delay={0.1} size="lg"
+            text={`|psi> = alpha|0> + beta|1>`}
+          />
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-sm text-white/50 leading-relaxed max-w-3xl"
+          >
+            Donde alpha y beta son numeros complejos llamados amplitudes de probabilidad.
+            El cuadrado del modulo de cada amplitud nos dice la probabilidad de medir ese estado.
+          </motion.p>
+
+          <FormulaBlock label="Condicion de Normalizacion" delay={0.2}
+            text={`|alpha|^2 + |beta|^2 = 1`}
+          />
+
+          <FormulaBlock label="Representacion como Vector Columna" delay={0.3}
+            text={`|psi> = [alpha] = [cos(theta/2)]\n        [beta]    [e^(i*phi)*sin(theta/2)]`}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">Estados de la Base Computacional</div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <MatrixDisplay matrix={[['1'], ['0']]} label="|0>" delay={0} />
+                  <span className="text-sm text-white/40">— Polo norte de la esfera</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <MatrixDisplay matrix={[['0'], ['1']]} label="|1>" delay={0.1} />
+                  <span className="text-sm text-white/40">— Polo sur de la esfera</span>
+                </div>
+              </div>
+            </div>
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">Estados de la Base Hadamard</div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <MatrixDisplay matrix={[['1/sqrt(2)'], ['1/sqrt(2)']]} label="|+>" delay={0.2} />
+                  <span className="text-sm text-white/40">— Eje +X</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <MatrixDisplay matrix={[['1/sqrt(2)'], ['-1/sqrt(2)']]} label="|->" delay={0.3} />
+                  <span className="text-sm text-white/40">— Eje -X</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 2: ESFERA DE BLOCH ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="label-tracked block mb-4">Seccion 2</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-8">
+            La <span className="italic text-blue">Esfera de Bloch</span>
+          </h2>
+        </motion.div>
+
+        <div className="space-y-8">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-sm text-white/50 leading-relaxed max-w-3xl"
+          >
+            La Esfera de Bloch es una representacion geometrica del espacio de estados puros
+            de un qubit. Cada punto en la superficie de la esfera corresponde a un estado
+            cuantico unico. La fase global es irrelevante, por lo que solo necesitamos
+            dos angulos para describir cualquier estado.
+          </motion.p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormulaBlock label="Angulo Theta (theta)" delay={0}
+              text={`0 <= theta <= pi`}
+            />
+            <FormulaBlock label="Angulo Phi (phi)" delay={0.1}
+              text={`0 <= phi < 2*pi`}
+            />
+            <FormulaBlock label="Coordenadas Cartesianas" delay={0.2}
+              text={`x = sin(theta)*cos(phi)\ny = sin(theta)*sin(phi)\nz = cos(theta)`}
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="glass-panel rounded-2xl p-6"
+          >
+            <div className="label-tracked mb-4 text-blue">Puntos Clave en la Esfera</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {[
+                { state: '|0>', coords: '(0, 0, 1)', angles: 'theta=0, phi=0', color: '#0066FF' },
+                { state: '|1>', coords: '(0, 0, -1)', angles: 'theta=pi, phi=0', color: '#3385FF' },
+                { state: '|+>', coords: '(1, 0, 0)', angles: 'theta=pi/2, phi=0', color: '#55FF55' },
+                { state: '|->', coords: '(-1, 0, 0)', angles: 'theta=pi/2, phi=pi', color: '#FF5555' },
+                { state: '|+i>', coords: '(0, 1, 0)', angles: 'theta=pi/2, phi=pi/2', color: '#FFAA33' },
+                { state: '|-i>', coords: '(0, -1, 0)', angles: 'theta=pi/2, phi=3pi/2', color: '#AA66FF' },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.state}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-white/[0.02] rounded-xl p-3 border border-white/5"
+                >
+                  <div className="font-mono text-sm font-bold mb-1" style={{ color: item.color }}>{item.state}</div>
+                  <div className="text-[10px] text-white/30 font-mono">{item.coords}</div>
+                  <div className="text-[10px] text-white/20 font-mono mt-0.5">{item.angles}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 3: COMPUERTAS CUANTICAS ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="label-tracked block mb-4">Seccion 3</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-3">
+            Compuertas <span className="italic text-blue">Unitarias</span>
+          </h2>
+          <p className="text-sm text-white/40 max-w-2xl mb-8">
+            Las compuertas cuanticas son operaciones unitarias que preservan la norma.
+            Cada compuerta se representa como una matriz 2x2 unitaria: U^dagger * U = I.
+          </p>
+        </motion.div>
+
+        {/* Gate selector */}
+        <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-quantum pb-2">
+          {(Object.keys(gateMatrices) as Array<keyof typeof gateMatrices>).map((key) => (
+            <button
+              key={key}
+              onClick={() => setActiveGate(key)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                activeGate === key
+                  ? 'bg-blue/[0.08] text-blue border border-blue/20'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.02] border border-transparent'
+              }`}
+            >
+              {key} — {gateMatrices[key].label}
+            </button>
+          ))}
+        </div>
+
+        <motion.div
+          key={activeGate}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="glass-panel rounded-2xl p-6"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <div className="label-tracked text-blue mb-2">
+                Matriz {gateMatrices[activeGate].label} ({activeGate})
+              </div>
+              <p className="text-xs text-white/40 mb-6">{gateMatrices[activeGate].desc}</p>
+              <MatrixDisplay
+                matrix={gateMatrices[activeGate].matrix}
+                delay={0}
+                bracketColor="#0066FF"
+              />
+            </div>
+            <div className="space-y-4">
+              <FormulaBlock label="Efecto sobre |0>" delay={0.1} size="sm"
+                text={`${activeGate}|0> = ${activeGate === 'H' ? '|+> = (|0>+|1>)/sqrt(2)' : activeGate === 'X' ? '|1>' : activeGate === 'Z' ? '|0>' : activeGate === 'S' ? '|0>' : activeGate === 'T' ? '|0>' : '|0>'}`}
+              />
+              <FormulaBlock label="Efecto sobre |1>" delay={0.2} size="sm"
+                text={`${activeGate}|1> = ${activeGate === 'H' ? '|-> = (|0>-|1>)/sqrt(2)' : activeGate === 'X' ? '|0>' : activeGate === 'Z' ? '-|1>' : activeGate === 'S' ? 'i|1>' : activeGate === 'T' ? 'e^(i*pi/4)|1>' : '|1>'}`}
+              />
+              <FormulaBlock label="Propiedad Unitaria" delay={0.3} size="sm"
+                text={`${activeGate}^dagger * ${activeGate} = I`}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Rotaciones parametrizadas */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-10 glass-panel rounded-2xl p-6"
+        >
+          <div className="label-tracked mb-4 text-blue">Compuertas de Rotacion Parametrizada</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <MatrixDisplay
+                matrix={[['cos(theta/2)', '-i*sin(theta/2)'], ['-i*sin(theta/2)', 'cos(theta/2)']]}
+                label="RX(theta)"
+                delay={0}
+              />
+              <p className="text-xs text-white/40 mt-3">Rotacion de theta radianes alrededor del eje X</p>
+            </div>
+            <div className="text-center">
+              <MatrixDisplay
+                matrix={[['cos(theta/2)', '-sin(theta/2)'], ['sin(theta/2)', 'cos(theta/2)']]}
+                label="RY(theta)"
+                delay={0.1}
+              />
+              <p className="text-xs text-white/40 mt-3">Rotacion de theta radianes alrededor del eje Y</p>
+            </div>
+            <div className="text-center">
+              <MatrixDisplay
+                matrix={[['e^(-i*theta/2)', '0'], ['0', 'e^(i*theta/2)']]}
+                label="RZ(theta)"
+                delay={0.2}
+              />
+              <p className="text-xs text-white/40 mt-3">Rotacion de theta radianes alrededor del eje Z</p>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 4: COMPUERTAS DE 2 QUBITS ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="label-tracked block mb-4">Seccion 4</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-8">
+            Compuertas de <span className="italic text-blue">2 Qubits</span>
+          </h2>
+        </motion.div>
+
+        <div className="space-y-8">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-sm text-white/50 leading-relaxed max-w-3xl"
+          >
+            Las compuertas de 2 qubits operan sobre el espacio tensorial C^2 x C^2 = C^4.
+            Son esenciales para generar entrelazamiento y realizar computacion cuantica
+            universal. La mas importante es CNOT (Controlled-NOT).
+          </motion.p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">CNOT (Controlled-NOT)</div>
+              <div className="flex justify-center mb-4">
+                <MatrixDisplay
+                  matrix={[['1', '0', '0', '0'], ['0', '1', '0', '0'], ['0', '0', '0', '1'], ['0', '0', '1', '0']]}
+                  label="Matriz 4x4"
+                  delay={0}
+                  bracketColor="#0066FF"
+                />
+              </div>
+              <FormulaBlock label="Accion" delay={0.1} size="sm"
+                text={`CNOT|00> = |00>,  CNOT|01> = |01>,  CNOT|10> = |11>,  CNOT|11> = |10>`}
+              />
+              <p className="text-xs text-white/40 mt-3">
+                Si el qubit de control (primero) es |1{'>'}, aplica X al qubit objetivo (segundo).
+                Genera estados entrelazados: CNOT * (1/sqrt(2))(|0{'>'}+|1{'>'})|0{'>'} = (1/sqrt(2))(|00{'>'}+|11{'>'})
+              </p>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">SWAP</div>
+              <div className="flex justify-center mb-4">
+                <MatrixDisplay
+                  matrix={[['1', '0', '0', '0'], ['0', '0', '1', '0'], ['0', '1', '0', '0'], ['0', '0', '0', '1']]}
+                  label="Matriz 4x4"
+                  delay={0}
+                  bracketColor="#3385FF"
+                />
+              </div>
+              <FormulaBlock label="Accion" delay={0.1} size="sm"
+                text={`SWAP|01> = |10>,  SWAP|10> = |01>`}
+              />
+              <p className="text-xs text-white/40 mt-3">
+                Intercambia los estados de dos qubits. Se puede construir con 3 CNOTs consecutivos.
+              </p>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-6">
+            <div className="label-tracked mb-4 text-blue">CZ (Controlled-Z)</div>
+            <div className="flex justify-center mb-4">
+              <MatrixDisplay
+                matrix={[['1', '0', '0', '0'], ['0', '1', '0', '0'], ['0', '0', '1', '0'], ['0', '0', '0', '-1']]}
+                label="Matriz 4x4"
+                delay={0}
+                bracketColor="#AA66FF"
+              />
+            </div>
+            <FormulaBlock label="Accion" delay={0.1} size="sm"
+              text={`CZ|11> = -|11>  (solo aplica fase -1 cuando ambos qubits son |1>)`}
+            />
+            <p className="text-xs text-white/40 mt-3">
+              Es diagonal, por lo que conmuta con otras compuertas diagonales. Muy usada en
+              algoritmos cuanticos y computacion adiabatica.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 5: PROTOCOLOS MATEMATICOS ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="label-tracked block mb-4">Seccion 5</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-3">
+            Protocolos <span className="italic text-blue">Matematicos</span>
+          </h2>
+          <p className="text-sm text-white/40 max-w-2xl mb-8">
+            Desglose riguroso paso a paso de los protocolos cuanticos fundamentales.
+            Cada paso incluye las matrices y las ecuaciones exactas.
+          </p>
+        </motion.div>
+
+        {/* Protocol selector */}
+        <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-quantum pb-2">
+          {[
+            { id: 0, name: 'BB84' },
+            { id: 1, name: 'Ramsey' },
+            { id: 2, name: 'Hahn Echo' },
+            { id: 3, name: 'Teleportacion' },
+          ].map(p => (
+            <button
+              key={p.id}
+              onClick={() => setActiveProtocol(p.id)}
+              className={`px-5 py-3 rounded-xl text-sm font-medium transition-all ${
+                activeProtocol === p.id
+                  ? 'bg-blue/[0.08] text-blue border border-blue/20'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.02] border border-transparent'
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+
+        {/* BB84 Steps */}
+        {activeProtocol === 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <ManimSequence
+              steps={[
+                {
+                  stepNumber: 1,
+                  title: 'Alice genera bit aleatorio y elige base',
+                  description: 'Alice genera un bit b_A en {0, 1} y elige una base B_A en {Z, X} uniformemente al azar.',
+                  formula: <FormulaBlock size="sm" text={`b_A ~ Bernoulli(0.5),  B_A ~ Uniform({Z, X})`} />,
+                },
+                {
+                  stepNumber: 2,
+                  title: 'Alice prepara el estado cuantico',
+                  description: 'Si B_A = Z: prepara |0> o |1>. Si B_A = X: prepara |+> o |->.',
+                  formula: <FormulaBlock size="sm" text={`|psi> = |b_A>  si B_A = Z;  |psi> = H|b_A>  si B_A = X`} />,
+                  matrix: <MatrixDisplay matrix={[['1/sqrt(2)', '1/sqrt(2)'], ['1/sqrt(2)', '-1/sqrt(2)']]} label="H = Hadamard" />,
+                },
+                {
+                  stepNumber: 3,
+                  title: 'Bob elige base y mide',
+                  description: 'Bob elige B_B en {Z, X} al azar y mide en esa base.',
+                  formula: <FormulaBlock size="sm" text={`Si B_B = X: aplica H^dagger antes de medir en base Z`} />,
+                },
+                {
+                  stepNumber: 4,
+                  title: 'Comparacion publica de bases',
+                  description: 'Alice y Bob anuncian publicamente sus bases. Solo conservan bits donde B_A = B_B.',
+                  formula: <FormulaBlock size="sm" text={`Prob(coincidencia) = 0.5,  Tasa clave = n/2 bits`} />,
+                },
+              ]}
+            />
+          </motion.div>
+        )}
+
+        {/* Ramsey Steps */}
+        {activeProtocol === 1 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <ManimSequence
+              steps={[
+                {
+                  stepNumber: 1,
+                  title: 'Preparacion: Hadamard sobre |0>',
+                  description: 'Inicializamos el qubit en |0> y aplicamos Hadamard para crear superposicion.',
+                  formula: <FormulaBlock size="sm" text={`H|0> = (|0> + |1>)/sqrt(2) = |+>`} />,
+                  matrix: <MatrixDisplay matrix={[['1/sqrt(2)', '1/sqrt(2)'], ['1/sqrt(2)', '-1/sqrt(2)']]} label="H" />,
+                },
+                {
+                  stepNumber: 2,
+                  title: 'Acumulacion de fase: RZ(phi)',
+                  description: 'El qubit evoluciona bajo un hamiltoniano que introduce fase relativa entre |0> y |1>.',
+                  formula: <FormulaBlock size="sm" text={`RZ(phi) = diag(e^(-i*phi/2), e^(i*phi/2))`} />,
+                  matrix: <MatrixDisplay matrix={[['e^(-i*phi/2)', '0'], ['0', 'e^(i*phi/2)']]} label="RZ(phi)" />,
+                },
+                {
+                  stepNumber: 3,
+                  title: 'Segundo Hadamard',
+                  description: 'Aplicamos Hadamard nuevamente. La fase acumulada determina la interferencia.',
+                  formula: <FormulaBlock size="sm" text={`H * RZ(phi) * H|0> = cos(phi/2)|0> + i*sin(phi/2)|1>`} />,
+                },
+                {
+                  stepNumber: 4,
+                  title: 'Probabilidad oscilatoria',
+                  description: 'La probabilidad de medir |1> oscila sinusoidalmente con la fase.',
+                  formula: <FormulaBlock size="sm" text={`P(|1>) = sin^2(phi/2),  P(|0>) = cos^2(phi/2)`} />,
+                },
+              ]}
+            />
+          </motion.div>
+        )}
+
+        {/* Hahn Echo Steps */}
+        {activeProtocol === 2 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <ManimSequence
+              steps={[
+                {
+                  stepNumber: 1,
+                  title: 'Preparacion del estado |+>',
+                  description: 'Inicializamos |0> y aplicamos Hadamard para obtener |+> = (|0>+|1>)/sqrt(2).',
+                  formula: <FormulaBlock size="sm" text={`|psi_0> = H|0> = (|0> + |1>)/sqrt(2)`} />,
+                },
+                {
+                  stepNumber: 2,
+                  title: 'Evolucion con ruido de fase',
+                  description: 'El entorno introduce un desfasamiento aleatorio phi. El estado acumula fase.',
+                  formula: <FormulaBlock size="sm" text={`|psi_1> = RZ(phi)|+> = (e^(-i*phi/2)|0> + e^(i*phi/2)|1>)/sqrt(2)`} />,
+                  matrix: <MatrixDisplay matrix={[['e^(-i*phi/2)', '0'], ['0', 'e^(i*phi/2)']]} label="RZ(phi)" />,
+                },
+                {
+                  stepNumber: 3,
+                  title: 'Pulso pi: Pauli-X',
+                  description: 'Aplicamos X para voltear el estado: |0> <-> |1>. El ruido ahora actua en sentido inverso.',
+                  formula: <FormulaBlock size="sm" text={`|psi_2> = X|psi_1> = (e^(i*phi/2)|0> + e^(-i*phi/2)|1>)/sqrt(2)`} />,
+                  matrix: <MatrixDisplay matrix={[['0', '1'], ['1', '0']]} label="X" />,
+                },
+                {
+                  stepNumber: 4,
+                  title: 'Segundo desfasamiento (unwind)',
+                  description: 'El mismo ruido RZ(phi) se aplica nuevamente, deshaciendo la fase acumulada.',
+                  formula: <FormulaBlock size="sm" text={`|psi_3> = RZ(phi)|psi_2> = (|0> + |1>)/sqrt(2) = |+>`} />,
+                },
+                {
+                  stepNumber: 5,
+                  title: 'Resultado: eco perfecto',
+                  description: 'El estado vuelve exactamente a |+>, demostrando que el ruido de fase es reversible.',
+                  formula: <FormulaBlock size="sm" text={`X * RZ(phi) * X * RZ(phi) * H|0> = H|0>   (si phi es constante)`} />,
+                },
+              ]}
+            />
+          </motion.div>
+        )}
+
+        {/* Teleportation Steps */}
+        {activeProtocol === 3 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <ManimSequence
+              steps={[
+                {
+                  stepNumber: 1,
+                  title: 'Estado a teleportar y par EPR',
+                  description: 'Alice tiene |psi> = alpha|0> + beta|1>. Alice y Bob comparten un par Bell |Phi+> = (|00>+|11>)/sqrt(2).',
+                  formula: <FormulaBlock size="sm" text={`|psi>_total = |psi>_(A1) (x) |Phi+>_(A2,B)`} />,
+                },
+                {
+                  stepNumber: 2,
+                  title: 'Medicion de Bell de Alice',
+                  description: 'Alice mide sus dos qubits en la base de Bell, obteniendo uno de 4 resultados (00, 01, 10, 11).',
+                  formula: <FormulaBlock size="sm" text={`|psi>_(A1,A2) = {|00>+|11>, |00>-|11>, |01>+|10>, |01>-|10>}/sqrt(2)`} />,
+                },
+                {
+                  stepNumber: 3,
+                  title: 'Colapso del estado de Bob',
+                  description: 'Tras la medicion, el qubit de Bob colapsa a uno de 4 estados relacionados con |psi>.',
+                  formula: <FormulaBlock size="sm" text={`|psi>_Bob en {alpha|0>+beta|1>, alpha|0>-beta|1>, alpha|1>+beta|0>, alpha|1>-beta|0>}`} />,
+                },
+                {
+                  stepNumber: 4,
+                  title: 'Correccion unitaria de Bob',
+                  description: 'Bob aplica I, Z, X, o ZX segun los 2 bits clasicos que Alice le envia.',
+                  formula: <FormulaBlock size="sm" text={`00: I,  01: Z,  10: X,  11: ZX = iY`} />,
+                  matrix: <MatrixDisplay matrix={[['I', 'Z'], ['X', 'ZX']]} label="Correcciones" />,
+                },
+                {
+                  stepNumber: 5,
+                  title: 'Estado reconstruido',
+                  description: 'Bob obtiene exactamente |psi>, demostrando que la teleportacion funciona sin clonar.',
+                  formula: <FormulaBlock size="sm" text={`|psi>_Bob = alpha|0> + beta|1> = |psi>_(original)`} />,
+                },
+              ]}
+            />
+          </motion.div>
+        )}
+      </section>
+
+      <div className="section-divider max-w-3xl mx-auto" />
+
+      {/* ===== SECCION 6: ENTRELAZAMIENTO ===== */}
+      <section className="px-4 py-20 max-w-5xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <span className="label-tracked block mb-4">Seccion 6</span>
+          <h2 className="font-serif text-3xl md:text-4xl text-white mb-8">
+            <span className="italic text-blue">Entrelazamiento</span> Cuantico
+          </h2>
+        </motion.div>
+
+        <div className="space-y-8">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-sm text-white/50 leading-relaxed max-w-3xl"
+          >
+            El entrelazamiento es una correlacion cuantica que no tiene analogo clasico.
+            Dos qubits entrelazados no pueden describirse como estados individuales:
+            solo existe una descripcion conjunta.
+          </motion.p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">Estados de Bell</div>
+              <div className="space-y-3">
+                <FormulaBlock size="sm" delay={0} text={`|Phi+> = (|00> + |11>)/sqrt(2)`} />
+                <FormulaBlock size="sm" delay={0.1} text={`|Phi-> = (|00> - |11>)/sqrt(2)`} />
+                <FormulaBlock size="sm" delay={0.2} text={`|Psi+> = (|01> + |10>)/sqrt(2)`} />
+                <FormulaBlock size="sm" delay={0.3} text={`|Psi-> = (|01> - |10>)/sqrt(2)`} />
+              </div>
+              <p className="text-xs text-white/40 mt-4">
+                Forman una base ortonormal del espacio de 2 qubits. Cualquier estado entrelazado
+                puede expresarse como combinacion lineal de estos 4 estados.
+              </p>
+            </div>
+
+            <div className="glass-panel rounded-2xl p-6">
+              <div className="label-tracked mb-4 text-blue">Desigualdad de Bell (CHSH)</div>
+              <FormulaBlock size="sm" delay={0}
+                text={`S = E(a,b) - E(a,b') + E(a',b) + E(a',b')`}
+              />
+              <FormulaBlock size="sm" delay={0.1}
+                text={`Clasico: |S| <= 2        Cuantico: |S| <= 2*sqrt(2) ~ 2.828`}
+              />
+              <p className="text-xs text-white/40 mt-4">
+                La mecanica cuantica viola la desigualdad de Bell, demostrando que no puede
+                describirse con variables ocultas locales. El estado |Psi-{'>'} alcanza el valor maximo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA al laboratorio */}
+      <section className="px-4 py-16 text-center max-w-3xl mx-auto">
+        <div className="section-divider max-w-3xl mx-auto mb-10" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h3 className="font-serif text-2xl text-white mb-3">
+            Listo para <span className="italic text-blue">experimentar</span>?
+          </h3>
+          <p className="text-sm text-white/40 mb-6">
+            Aplica todo lo aprendido en el laboratorio interactivo. Manipula estados,
+            aplica compuertas y visualiza protocolos en tiempo real.
+          </p>
+          <a href="#/lab" className="inline-block btn-blue">
+            <span className="flex items-center gap-2">
+              Ir al Laboratorio
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </a>
+        </motion.div>
+      </section>
+    </div>
+  );
+}
