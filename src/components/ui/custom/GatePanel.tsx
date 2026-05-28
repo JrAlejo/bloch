@@ -12,6 +12,8 @@ const SINGLE_QUBIT_GATES: { name: GateName; label: string; desc: string; badge: 
   { name: 'T', label: 'T', desc: 'pi/8', badge: 'gate-badge-t' },
 ];
 
+const ESP32_URL = 'https://bloch.biomedicsesp.site';
+
 interface GatePanelProps {
   qubitIndex?: number;
 }
@@ -35,7 +37,19 @@ export default function GatePanel({ qubitIndex = 0 }: GatePanelProps) {
     setQubitState(qubitIndex, theta * Math.PI / 180, val * Math.PI / 180);
   }, [theta, qubitIndex, setQubitState]);
 
-  const handleGate = useCallback((gateName: GateName) => {
+  const handleGate = useCallback(async (gateName: GateName) => {
+    // 1. Send command to ESP32 physical motors via Tunnel
+    try {
+      await fetch(`${ESP32_URL}/api/gate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gate: gateName })
+      });
+    } catch (err) {
+      console.error('Error sending gate to ESP32:', err);
+    }
+
+    // 2. Update Web UI state
     applyGateToQubit(qubitIndex, { name: gateName });
     const newCoords = useQuantumStore.getState().blochCoords[qubitIndex];
     setTheta(Math.round(newCoords.theta * 180 / Math.PI));
@@ -47,7 +61,14 @@ export default function GatePanel({ qubitIndex = 0 }: GatePanelProps) {
       <div className="flex items-center justify-between">
         <span className="label-tracked">Control Qubit {qubitIndex + 1}</span>
         <button
-          onClick={resetTimeline}
+          onClick={async () => {
+            try {
+              await fetch(`${ESP32_URL}/api/reset`, { method: 'POST' });
+            } catch (err) {
+              console.error('Error resetting ESP32:', err);
+            }
+            resetTimeline();
+          }}
           className="p-1.5 rounded-full hover:bg-white/5 text-white/30 hover:text-white/60 transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" />
