@@ -12,7 +12,7 @@ const SINGLE_QUBIT_GATES: { name: GateName; label: string; desc: string; badge: 
   { name: 'T', label: 'T', desc: 'pi/8', badge: 'gate-badge-t' },
 ];
 
-const ESP32_URL = 'http://192.168.10.100:3000';
+const ESP32_URL = 'http://10.48.72.101:3000';
 
 interface GatePanelProps {
   qubitIndex?: number;
